@@ -1,0 +1,46 @@
+"""
+Computation of FOOOF based on MNE evoked object
+CFIN @ Aarhus University
+Author: Jordan Alves <jordan.alves@cfin.au.dk>
+"""
+
+import mne
+import numpy as np
+from fooof import FOOOF
+
+"""FOOOF computation.
+
+    Parameters
+    ----------
+    fmin : int
+        Set to minimum frequency you want.
+    fmax : int
+        Set to maximum frequency you want.
+    tmin : float
+        Set to start of time window of interest.
+    tmax : float
+        Set to end of time window of interest.
+    evoked : str
+        This is your evoked data. The format of the evoked data should be
+        filename-ave.fif.
+    data_path : str
+        The path where your FOOOF report will be saved.
+
+"""
+
+# %% FOOOF PARAMS AND COMPUTATION.
+# You need to feed FOOOF with the spectrum & the frequencies of your data.
+spectrum, freqs_evoked = mne.time_frequency.psd_multitaper(evoked, fmin=fmin,
+                                                           fmax=fmax,
+                                                           tmin=tmin,
+                                                           tmax=tmax, n_jobs=1)
+
+# From the psd_multitaper you get a 2D matrix & FOOOF computes on arrays.
+spectrum_evoked = np.mean(spectrum, axis=0)
+
+# Compute FOOOF. More informations : <https://github.com/voytekresearch/fooof>.
+fm = FOOOF()
+freq_range = [fmin, fmax]
+fm.report(freqs_evoked, spectrum_evoked, freq_range)
+fm.save_report(file_name='filename',
+               file_path=data_path)
